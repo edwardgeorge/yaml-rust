@@ -79,7 +79,7 @@ impl MarkedEventReceiver for YamlLoader {
     fn on_event(&mut self, ev: Event, _: Marker) {
         // println!("EV {:?}", ev);
         match ev {
-            Event::DocumentStart => {
+            Event::DocumentStart(..) => {
                 // do nothing
             }
             Event::DocumentEnd => {

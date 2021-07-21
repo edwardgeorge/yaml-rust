@@ -37,7 +37,7 @@ pub enum Event {
     Nothing,
     StreamStart,
     StreamEnd,
-    DocumentStart,
+    DocumentStart(Vec<(String, String)>),
     DocumentEnd,
     /// Refer to an anchor ID
     Alias(usize),
@@ -72,6 +72,7 @@ pub struct Parser<T> {
     current: Option<(Event, Marker)>,
     anchors: HashMap<String, usize>,
     anchor_id: usize,
+    tags: HashMap<String, String>,
 }
 
 pub trait EventReceiver {
@@ -103,6 +104,7 @@ impl<T: Iterator<Item = char>> Parser<T> {
             anchors: HashMap::new(),
             // valid anchor_id starts from 1
             anchor_id: 1,
+            tags: HashMap::new(),
         }
     }
 
@@ -208,7 +210,7 @@ impl<T: Iterator<Item = char>> Parser<T> {
         mark: Marker,
         recv: &mut R,
     ) -> Result<(), ScanError> {
-        assert_eq!(first_ev, Event::DocumentStart);
+        assert!(matches!(first_ev, Event::DocumentStart(..)));
         recv.on_event(first_ev, mark);
 
         let (ev, mark) = self.next()?;
@@ -333,6 +335,7 @@ impl<T: Iterator<Item = char>> Parser<T> {
     }
 
     fn document_start(&mut self, implicit: bool) -> ParseResult {
+        self.tags.clear();
         if !implicit {
             while let TokenType::DocumentEnd = self.peek_token()?.1 {
                 self.skip();
@@ -355,7 +358,15 @@ impl<T: Iterator<Item = char>> Parser<T> {
                 self.parser_process_directives()?;
                 self.push_state(State::DocumentEnd);
                 self.state = State::BlockNode;
-                Ok((Event::DocumentStart, mark))
+                Ok((
+                    Event::DocumentStart(
+                        self.tags
+                            .iter()
+                            .map(|(a, b)| (a.clone(), b.clone()))
+                            .collect::<Vec<_>>(),
+                    ),
+                    mark,
+                ))
             }
             _ => {
                 // explicit document
@@ -365,6 +376,7 @@ impl<T: Iterator<Item = char>> Parser<T> {
     }
 
     fn parser_process_directives(&mut self) -> Result<(), ScanError> {
+        let mut tags = Vec::new();
         loop {
             match self.peek_token()?.1 {
                 TokenType::VersionDirective(_, _) => {
@@ -374,14 +386,14 @@ impl<T: Iterator<Item = char>> Parser<T> {
                     //        "found incompatible YAML document"));
                     //}
                 }
-                TokenType::TagDirective(..) => {
-                    // TODO add tag directive
+                TokenType::TagDirective(ref handle, ref prefix) => {
+                    tags.push((handle.clone(), prefix.clone()));
                 }
                 _ => break,
             }
             self.skip();
         }
-        // TODO tag directive
+        self.tags.extend(tags);
         Ok(())
     }
 
@@ -392,7 +404,15 @@ impl<T: Iterator<Item = char>> Parser<T> {
                 self.push_state(State::DocumentEnd);
                 self.state = State::DocumentContent;
                 self.skip();
-                Ok((Event::DocumentStart, mark))
+                Ok((
+                    Event::DocumentStart(
+                        self.tags
+                            .iter()
+                            .map(|(a, b)| (a.clone(), b.clone()))
+                            .collect::<Vec<_>>(),
+                    ),
+                    mark,
+                ))
             }
             Token(mark, _) => Err(ScanError::new(
                 mark,
@@ -864,7 +884,7 @@ key: value
 ";
         let mut p = Parser::new(s.chars());
         assert_eq!(p.next().unwrap().0, Event::StreamStart);
-        assert_eq!(p.next().unwrap().0, Event::DocumentStart);
+        assert!(matches!(p.next().unwrap().0, Event::DocumentStart(..)));
         assert_eq!(
             p.next().unwrap().0,
             Event::MappingStart(
@@ -878,7 +898,7 @@ key: value
         let s = "!customtag {\"key\": \"value\"}";
         let mut p = Parser::new(s.chars());
         assert_eq!(p.next().unwrap().0, Event::StreamStart);
-        assert_eq!(p.next().unwrap().0, Event::DocumentStart);
+        assert!(matches!(p.next().unwrap().0, Event::DocumentStart(..)));
         assert_eq!(
             p.next().unwrap().0,
             Event::MappingStart(
@@ -895,7 +915,7 @@ key: value
 ";
         let mut p = Parser::new(s.chars());
         assert_eq!(p.next().unwrap().0, Event::StreamStart);
-        assert_eq!(p.next().unwrap().0, Event::DocumentStart);
+        assert!(matches!(p.next().unwrap().0, Event::DocumentStart(..)));
         assert_eq!(
             p.next().unwrap().0,
             Event::SequenceStart(
@@ -909,7 +929,7 @@ key: value
         let s = "!customtag [item]";
         let mut p = Parser::new(s.chars());
         assert_eq!(p.next().unwrap().0, Event::StreamStart);
-        assert_eq!(p.next().unwrap().0, Event::DocumentStart);
+        assert!(matches!(p.next().unwrap().0, Event::DocumentStart(..)));
         assert_eq!(
             p.next().unwrap().0,
             Event::SequenceStart(
