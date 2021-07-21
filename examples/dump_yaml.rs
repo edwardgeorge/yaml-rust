@@ -1,9 +1,9 @@
-extern crate yaml_rust;
+extern crate yaml_rust_next;
 
 use std::env;
 use std::fs::File;
 use std::io::prelude::*;
-use yaml_rust::yaml;
+use yaml_rust_next::yaml;
 
 fn print_indent(indent: usize) {
     for _ in 0..indent {

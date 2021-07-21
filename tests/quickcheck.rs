@@ -1,9 +1,9 @@
-extern crate yaml_rust;
+extern crate yaml_rust_next;
 #[macro_use]
 extern crate quickcheck;
 
 use quickcheck::TestResult;
-use yaml_rust::{Yaml, YamlEmitter, YamlLoader};
+use yaml_rust_next::{Yaml, YamlEmitter, YamlLoader};
 
 quickcheck! {
     fn test_check_weird_keys(xs: Vec<String>) -> TestResult {

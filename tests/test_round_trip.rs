@@ -1,6 +1,6 @@
-extern crate yaml_rust;
+extern crate yaml_rust_next;
 
-use yaml_rust::{Yaml, YamlEmitter, YamlLoader};
+use yaml_rust_next::{Yaml, YamlEmitter, YamlLoader};
 
 fn roundtrip(original: &Yaml) {
     let mut emitted = String::new();

@@ -1,13 +1,11 @@
-# yaml-rust
+# yaml-rust-next
 
 The missing YAML 1.2 implementation for Rust.
 
-[![Travis](https://travis-ci.org/chyh1990/yaml-rust.svg?branch=master)](https://travis-ci.org/chyh1990/yaml-rust)
-[![AppVeyor](https://ci.appveyor.com/api/projects/status/scf47535ckp4ylg4?svg=true)](https://ci.appveyor.com/project/chyh1990/yaml-rust)
 [![crates.io](https://img.shields.io/crates/v/yaml-rust.svg)](https://crates.io/crates/yaml-rust)
 [![docs.rs](https://img.shields.io/badge/api-rustdoc-blue.svg)](https://docs.rs/yaml-rust)
 
-`yaml-rust` is a pure Rust YAML 1.2 implementation,
+`yaml-rust-next` is a pure Rust YAML 1.2 implementation,
 which enjoys the memory safety
 property and other benefits from the Rust language.
 The parser is heavily influenced by `libyaml` and `yaml-cpp`.
@@ -18,21 +16,21 @@ Add the following to the Cargo.toml of your project:
 
 ```toml
 [dependencies]
-yaml-rust = "0.4"
+yaml-rust-next = "0.4"
 ```
 
 and import:
 
 ```rust
-extern crate yaml_rust;
+extern crate yaml_rust_next_
 ```
 
 Use `yaml::YamlLoader` to load the YAML documents and access it
 as Vec/HashMap:
 
 ```rust
-extern crate yaml_rust;
-use yaml_rust::{YamlLoader, YamlEmitter};
+extern crate yaml_rust_next;
+use yaml_rust_next::{YamlLoader, YamlEmitter};
 
 fn main() {
     let s =
